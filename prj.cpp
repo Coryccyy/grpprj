@@ -11,7 +11,8 @@ using namespace std;
 // Global variable
 int userID = 0;
 int today_date, today_month, today_year;
-int tableA[13][7], tableB[13][7], tableC[13][7]; // Time table for room A, B, C
+int tableA[13][7], tableB[13][7], tableC[13][7];   // Time table for room A, B, C
+Account Accounts[10000];
 
 
 // Set Time Table of A, B, C room
@@ -47,24 +48,72 @@ void reservation();
 // Resere Conference Room
 void reserve();
 
+// Name Check
+void checkName();
+
+// Phone Check
+void checkPhone();
+
+// Email Check
+void checkEmail();
+
+// Check date
+bool isValidDate(int, int, int);
+
+// Check Within 7 days
+bool isWithinDate(int, int, int);
+
+// Make Correct Date
+void makeCorrectDate(int&, int&, int&);
+
+// Resevation Date Check
+void checkDate();
+
+// Start Time Check
+void checkStartTime();
+
+// End Time Check
+void checkEndTime();
+
+// Number of Participants Check
+void checkParticipants();
+
+// Check if the timeslot required is free
+int checkTimeTable(int, int, int, int, char);
+
+// Confirmation
+void confirmation(int ID);
+
+// Suggestion 
+void suggestion(int, int, int, int, char);
+
 // Modify Reservation
 void modify();
 
 // Cancel Reservation
 void cancel();
 
+// Add Booking Record
+void addBookingRecord(int, int, int, char, int);
+
+// Delete Booking Record
+void deleteBookingRecord(int, int, int, char);
+
 // Show Reservation Record
-void record();
+void time_date(char);
+
+void displayReservationRecord();
 
 // Show Staff Requirements
-void staff();
+//void staff();
 
 // Show Credits
-void credits();
+void printcredit();
+
+void credit();
 
 // Main Program ******************************************************************************************************************************************************************************
 int main() {
-    Account Accounts[10000];
     setTodayDate(today_date, today_month, today_year);
 
     welcomeMessage();
@@ -131,7 +180,7 @@ public:
     int getParticipants() { return number; }
 
     // Set Cost
-    void setCost(int inCost) { cost = inCost };
+    void setCost(int inCost) { cost = inCost; };
 
     // Get Cost
     int getCost() { return cost; }
@@ -212,13 +261,13 @@ void welcomeMessage() {
             reservation();
             break;
         case 2:
-            record();
+            displayReservationRecord();
             break;
         case 3:
-            staff();
+            //staff();
             break;
         case 4:
-            credits();
+            credit();
             break;
         default:
             cout << "Invalid input. Please enter again.";
@@ -292,7 +341,7 @@ void checkName() {
         cin.getline(name, 100, '\n');
         check = true;
 
-        for (int i; i <= strlen(name); i++)
+        for (int i = 0; i <= strlen(name); i++)
             if (!((name[i] >= 'a' && name[i] <= 'z') || (name[i] >= 'A' && name[i] <= 'Z')))
                 check = false;
 
@@ -545,7 +594,7 @@ int checkTimeTable(int st, int et, int duration, int day, char room) {
     switch (room) {
     case 'A':
         while ((i <= et) && (count <= duration)) {
-            if (tableA[i][day] == ' ') {
+            if (tableA[i][day] == 0) {
                 count++;
                 i++;
             }
@@ -558,7 +607,7 @@ int checkTimeTable(int st, int et, int duration, int day, char room) {
 
     case 'B':
         while ((i <= et) && (count <= duration)) {
-            if (tableB[i][day] == ' ') {
+            if (tableB[i][day] == 0) {
                 count++;
                 i++;
             }
@@ -571,7 +620,7 @@ int checkTimeTable(int st, int et, int duration, int day, char room) {
 
     case 'C':
         while ((i <= et) && (count <= duration)) {
-            if (tableC[i][day] == ' ') {
+            if (tableC[i][day] == 0) {
                 count++;
                 i++;
             }
@@ -586,7 +635,7 @@ int checkTimeTable(int st, int et, int duration, int day, char room) {
         cout << "Sorry, we faced an system error. \n";
         cout << "Please Reserve again. \n";
         reserve();
-        return;
+        return 0;
     }
 
     if (count == duration) return ast;
@@ -893,7 +942,7 @@ void cancel() {
         else if (option == 'N') {
             cout << "Cancellation rejected. \n";
             return reservation();
-            DisplayReservationRecord();
+            displayReservationRecord();
         }
         else {
             cout << "Input Invald. \n";
@@ -974,15 +1023,15 @@ void time_date(char room)
             switch (room) {
             case 'A': 
                 if (tableA[i][j] == 0) cout << "   ";
-                else cout << " x ";
+                else cout << "   x   ";
                 break;
             case 'B': 
                 if (tableA[i][j] == 0) cout << "   ";
-                else cout << " x ";
+                else cout << "   x   ";
                 break;
             case 'C':
                 if (tableA[i][j] == 0) cout << "   ";
-                else cout << " x ";
+                else cout << "   x   ";
                 break;
             default: 
                 cout << "system error."; 
@@ -995,8 +1044,7 @@ void time_date(char room)
     }
 }
 
-
-void DisplayReservationRecord(int booking[13][7]) {
+void displayReservationRecord() {
     char Y;   // Input of user 
 
     cout << "*** Reservation Record ***\n";
@@ -1026,7 +1074,7 @@ void DisplayReservationRecord(int booking[13][7]) {
 
         default:
             cout << "Wrong option" << endl;
-            DisplayReservationRecord(booking);
+            displayReservationRecord();
         }
 
         time_date(Y);
@@ -1036,33 +1084,31 @@ void DisplayReservationRecord(int booking[13][7]) {
 }
 
 // Show Staff Requirements
-void staff() {
-    int d = today_date;
-    int m = today_month;
-    int y = today_year;  //checking
-
-    int day[2], month[2], year[4]; // input
-    char input[10];
-
-    cout << "*** Staff Requirements ***";
-    cout << "Enter the Date (dd/mm/yyyy) or X to exit: "; cin >> input;
-    if (input[0] == 'X') return welcomeMessage();
-    else {
-        day[0] = input[0]; day[1] = input[1];
-        month[0] = input[3]; month[1] = input[4];
-        year[0] = input[6]; year[1] = input[7]; year[2] = input[8]; year[3] = input[9];
-    }
-
-    for (int i = 0; i < 7; i++) {  // sliding the valid backward to check if it is saem as the input date
-        d++;
-        makeCorrectDate(valid_date, valid_month, valid_year);
-
-        if ((d == valid_date) && (m == valid_month) && (y == valid_year)) { //checking
-            Accounts[userID].setDay(dayCount - 1);
-            return true;
-        }
-    };
-}
+//void staff() {
+//    int d = today_date;
+//    int m = today_month;
+//    int y = today_year;  //checking
+//
+//    int day[2], month[2], year[4]; // input
+//    char input[10];
+//
+//    cout << "*** Staff Requirements ***";
+//    cout << "Enter the Date (dd/mm/yyyy) or X to exit: "; cin >> input;
+//    if (input[0] == 'X') return welcomeMessage();
+//    else {
+//        
+//    }
+//
+//    for (int i = 0; i < 7; i++) {  // sliding the valid backward to check if it is saem as the input date
+//        d++;
+//        makeCorrectDate(valid_date, valid_month, valid_year);
+//
+//        if ((d == valid_date) && (m == valid_month) && (y == valid_year)) { //checking
+//            Accounts[userID].setDay(dayCount - 1);
+//            return true;
+//        }
+//    };
+//}
 
 // Credits
 void printcredit() {
@@ -1074,22 +1120,22 @@ void printcredit() {
     cout << setw(20) << "Lo Chun Yin" << setw(17) << "21016730A" << setw(17) << "102B" << endl;
     cout << setw(20) << "Ng Shun Kai" << setw(17) << "21115732A" << setw(17) << "102B" << endl;
     cout << setw(20) << "Tang Cheuk Hin" << setw(17) << "21135614A" << setw(17)  << "102C" << endl;
-    cout << setw(20) << "Chan Cory Yuk Yin" << setw(17) << "21168497A" << setw(17) << "103C" << endl;
+    cout << setw(20) << "Chan Cory Yuk Yin" << setw(17) << "21168497A" << setw(17) << "102B" << endl;
 }
 
 void credit() {
     char option;
 
-
     do {
         cout << "Confirm to show Credits and terminate the program?  "; cin >> option;
 
-        if ( (option == 'y') || (option == 'Y') ) {
-        printcredit();
-        exit(0);
+        if ((option == 'y') || (option == 'Y')) {
+            printcredit();
+            exit(0);
         }
-        else if ( (option == 'n') || (option == 'N') ) {
-            cout << "Returning to main menu"; 
+        else if ((option == 'n') || (option == 'N')) {
+            cout << "Returning to main menu";
             return welcomeMessage();
         }
-    } while ( (option == 'y') || (option == 'Y') || (option == 'n') || (option == 'N') );
+    } while ((option == 'y') || (option == 'Y') || (option == 'n') || (option == 'N'));
+}
